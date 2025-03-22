@@ -6,11 +6,11 @@
         <q-card class="q-pa-md">
           <q-card-section>
             <q-form>
-              <q-card-actions align="left">
-                <q-btn label="Nuevo" color="primary" @click="nuevoRegistro" />
-                <q-btn label="Editar" color="secondary" @click="editarRegistro" :disable="!registroSeleccionado" />
-                <q-btn label="Guardar" color="positive" @click="guardarRegistro" :disable="!puedeGuardar" />
-                <q-btn label="Eliminar" color="negative" @click="eliminarRegistro" :disable="!registroSeleccionado" />
+              <q-card-actions align="left" class="q-gutter-x-sm wrap">
+                <q-btn dense label="Nuevo" color="primary" @click="nuevoRegistro" />
+                <q-btn dense label="Editar" color="secondary" @click="editarRegistro" :disable="!registroSeleccionado" />
+                <q-btn dense label="Guardar" color="positive" @click="guardarRegistro" :disable="!puedeGuardar" />
+                <q-btn dense label="Eliminar" color="negative" @click="eliminarRegistro" :disable="!registroSeleccionado" />
               </q-card-actions>
 
               <q-input v-model="cliente.nombre_completo" label="Nombre Completo" :disable="!modoEdicion"/>

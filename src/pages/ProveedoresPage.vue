@@ -6,12 +6,13 @@
         <q-card class="q-pa-md">
           <q-card-section>
             <q-form>
-              <q-card-actions align="right">
-                <q-btn label="Nuevo" color="primary" @click="nuevoRegistro" />
-                <q-btn label="Editar" color="secondary" @click="editarRegistro" :disable="!registroSeleccionado" />
-                <q-btn label="Guardar" color="positive" @click="guardarRegistro" :disable="!puedeGuardar" />
-                <q-btn label="Eliminar" color="negative" @click="eliminarRegistro" :disable="!registroSeleccionado" />
+              <q-card-actions align="left" class="q-gutter-x-sm wrap">
+                <q-btn dense label="Nuevo" color="primary" @click="nuevoRegistro" />
+                <q-btn dense label="Editar" color="secondary" @click="editarRegistro" :disable="!registroSeleccionado" />
+                <q-btn dense label="Guardar" color="positive" @click="guardarRegistro" :disable="!puedeGuardar" />
+                <q-btn dense label="Eliminar" color="negative" @click="eliminarRegistro" :disable="!registroSeleccionado" />
               </q-card-actions>
+
 
               <q-input v-model="proveedor.nombre_completo" label="Nombre" :disable="!modoEdicion"/>
               <q-select v-model="proveedor.tipo_documento" :options="tipoDocumentos" label="Tipo de Documento" :disable="!modoEdicion"/>
@@ -35,6 +36,9 @@
           :columns="columns"
           row-key="id"
           :loading="loading"
+          :rows-per-page-options="[10]"
+          :rows-per-page="10"
+          virtual-scroll
           @row-click="seleccionarRegistro"
         >
         <template #loading>
