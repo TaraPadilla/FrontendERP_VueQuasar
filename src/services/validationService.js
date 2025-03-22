@@ -26,9 +26,9 @@ export const reglasCliente = {
 
 // Reglas para proveedores
 export const reglasProveedor = {
-  nombre: { requerido: true, tipo: "string", min: 5 },
+  nombre_completo: { requerido: true, tipo: "string", min: 5 },
   telefono: { requerido: true, tipo: "string" },
-  correo: { requerido: true, tipo: "string" },
+  email: { requerido: true, tipo: "string" },
   direccion: { requerido: true, tipo: "string" },
   municipio: { requerido: true, tipo: "string" },
   departamento: { requerido: true, tipo: "string" }

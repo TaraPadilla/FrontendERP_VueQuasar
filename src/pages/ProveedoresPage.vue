@@ -13,14 +13,14 @@
                 <q-btn label="Eliminar" color="negative" @click="eliminarRegistro" :disable="!registroSeleccionado" />
               </q-card-actions>
 
-              <q-input v-model="proveedor.nombre" label="Nombre" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.telefono" label="Teléfono" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.correo" label="Correo" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.direccion.nomenclatura" label="Dirección - Nomenclatura" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.direccion.vereda" label="Vereda" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.direccion.finca" label="Finca" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.direccion.municipio" label="Municipio" :disable="!modoEdicion"/>
-              <q-input v-model="proveedor.direccion.departamento" label="Departamento" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.nombre_completo" label="Nombre" :disable="!modoEdicion"/>
+              <q-select v-model="proveedor.tipo_documento" :options="tipoDocumentos" label="Tipo de Documento" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.numero_documento" label="Número de Documento" :disable="!modoEdicion"  />
+              <q-input v-model="proveedor.telefono" label="Teléfono (WhatsApp)" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.email" label="Correo" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.direccion" label="Dirección - Nomenclatura" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.municipio" label="Municipio" :disable="!modoEdicion"/>
+              <q-input v-model="proveedor.departamento" label="Departamento" :disable="!modoEdicion"/>
             </q-form>
           </q-card-section>
         </q-card>
@@ -43,24 +43,24 @@
 
 <script setup>
 import CrudLayout from "src/layouts/CrudLayout.vue";
+import apiService from 'src/services/apiService';
 import { reglasProveedor, validarCampos } from "src/services/validationService";
-import terceros from "src/terceros.json";
 import { computed, onMounted, reactive, ref } from "vue";
 
 
 const proveedor = reactive({
   id: null,
-  nombre: "",
+  nombre_completo: "",
+  tipo_documento: "",
+  numero_documento: "",
   telefono: "",
-  correo: "",
-  direccion: {
-    nomenclatura: "",
-    vereda: "",
-    finca: "",
-    municipio: "",
-    departamento: ""
-  }
+  email: "",
+  direccion: "",
+  municipio: "",
+  departamento: ""
 });
+
+const tipoDocumentos = ["CC", "TI", "CE", "NIT"];
 
 const proveedores = ref([]);
 const registroSeleccionado = ref(false);
@@ -69,10 +69,10 @@ const errores = ref({});
 
 // Columnas de la tabla
 const columns = [
-  { name: "nombre", label: "Nombre", field: "nombre", align: "left" },
+  { name: "nombre", label: "Nombre", field: "nombre_completo", align: "left" },
   { name: "telefono", label: "Teléfono", field: "telefono", align: "left" },
-  { name: "correo", label: "Correo", field: "correo", align: "left" },
-  { name: "direccion", label: "Dirección", field: row => row.direccion.nomenclatura, align: "left" }
+  { name: "email", label: "Correo", field: "email", align: "left" },
+  { name: "direccion", label: "Dirección", field: "direccion", align: "left" }
 ];
 
 // Computed para habilitar el botón "Guardar"
@@ -82,8 +82,18 @@ const puedeGuardar = computed(() => {
 
 // Carga inicial
 onMounted(() => {
-  proveedores.value = terceros.proveedores;
+  cargarProveedores();
 });
+
+const cargarProveedores = () => {
+  apiService.get('/proveedores')
+    .then(response => {
+      proveedores.value = response.data
+    })
+    .catch(() => {
+      // El error ya se notifica automáticamente por apiService
+    })
+}
 
 // Función para seleccionar un registro desde la tabla
 const seleccionarRegistro = (evt, row) => {
@@ -101,26 +111,30 @@ const editarRegistro = () => {
 const nuevoRegistro = () => {
   Object.assign(proveedor, {
     id: null,
-    nombre: "",
+    nombre_completo: "",
+    tipo_documento: "",
+    numero_documento: "",
     telefono: "",
-    correo: "",
-    direccion: {
-      nomenclatura: "",
-      vereda: "",
-      finca: "",
-      municipio: "",
-      departamento: ""
-    }
+    email: "",
+    direccion: "",
+    municipio: "",
+    departamento: ""
   });
   registroSeleccionado.value = false;
   modoEdicion.value = true;
 };
 
-// Función para eliminar
-const eliminarRegistro = () => {
-  proveedores.value = proveedores.value.filter(p => p.id !== proveedor.id);
-  nuevoRegistro(); // Limpia el formulario
-};
+  // Función para eliminar
+  const eliminarRegistro = () => {
+    apiService.delete('/proveedores', proveedor.id)
+      .then(() => {
+        proveedores.value = proveedores.value.filter(p => p.id !== proveedor.id)
+        nuevoRegistro() // Limpia el formulario
+      })
+      .catch(() => {
+        // El error ya lo muestra apiService
+      })
+  };
 
 // Función para validar y guardar los cambios
 const guardarRegistro = () => {
@@ -128,11 +142,27 @@ const guardarRegistro = () => {
   if (Object.keys(errores.value).length > 0) return;
 
   if (proveedor.id === null) {
-    proveedor.id = proveedores.value.length + 1;
-    proveedores.value.push({ ...proveedor });
+      // Simula agregar un nuevo producto
+      apiService.post('/proveedores', proveedor)
+      .then(response => {
+        proveedores.value.push(response.data) // agrega el cliente retornado
+        modoEdicion.value = false
+      })
+      .catch(() => {
+        // El error ya se maneja automáticamente con Notify en apiService
+      })
   } else {
-    const index = proveedores.value.findIndex(p => p.id === proveedor.id);
-    if (index !== -1) proveedores.value[index] = { ...proveedor };
+    apiService.put('/proveedores', proveedor)
+      .then(response => {
+        const index = proveedores.value.findIndex(p => p.id === proveedor.id)
+        if (index !== -1) {
+          proveedores.value[index] = response.data
+        }
+        modoEdicion.value = false
+      })
+      .catch(() => {
+        // El error ya lo muestra apiService
+      })
   }
   modoEdicion.value = false;
 };

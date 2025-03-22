@@ -44,10 +44,9 @@
 
 <script setup>
 import CrudLayout from "src/layouts/CrudLayout.vue";
-import { reglasCliente, validarCampos } from "src/services/validationService.js";
-import terceros from "src/terceros.json";
-import { computed, onMounted, reactive, ref } from "vue";
 import apiService from 'src/services/apiService';
+import { reglasCliente, validarCampos } from "src/services/validationService.js";
+import { computed, onMounted, reactive, ref } from "vue";
 
     const cliente = reactive({
         id: null,
@@ -126,8 +125,7 @@ import apiService from 'src/services/apiService';
     modoEdicion.value = true;
   };
 
-
-    // Función para eliminar
+  // Función para eliminar
   const eliminarRegistro = () => {
     apiService.delete('/clientes', cliente.id)
     .then(() => {
@@ -154,7 +152,6 @@ import apiService from 'src/services/apiService';
       .catch(() => {
         // El error ya se maneja automáticamente con Notify en apiService
       })
-      //clientes.value.push({ ...cliente });
     } else {
       apiService.put('/clientes', cliente)
       .then(response => {
