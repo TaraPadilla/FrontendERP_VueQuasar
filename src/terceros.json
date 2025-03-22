@@ -1,0 +1,132 @@
+{
+    "clientes": [
+        {
+            "id": 1,
+            "nombre_completo": "Juan Pérez",
+            "tipo_documento": "CC",
+            "numero_documento": "123456789",
+            "telefono": "3101234567",
+            "direccion": "Carrera 10 #25-30",
+            "vereda": "El Bosque",
+            "finca": "La Esperanza",
+            "municipio": "Medellín",
+            "departamento": "Antioquia"
+        },
+        {
+            "id": 2,
+            "nombre_completo": "María Gómez",
+            "tipo_documento": "TI",
+            "numero_documento": "987654321",
+            "telefono": "3127654321",
+            "direccion": "Calle 45 #17-80",
+            "vereda": "Los Pinos",
+            "finca": "El Refugio",
+            "municipio": "Rionegro",
+            "departamento": "Antioquia"
+        },
+        {
+            "id": 3,
+            "nombre_completo": "Carlos Rodríguez",
+            "tipo_documento": "CC",
+            "numero_documento": "111222333",
+            "telefono": "3151112223",
+            "direccion":"Avenida Principal #100-15",
+            "vereda": "San Luis",
+            "finca": "Monte Bello",
+            "municipio": "Cali",
+            "departamento": "Valle del Cauca"
+            
+        },
+        {
+            "id": 4,
+            "nombre_completo": "Ana Méndez",
+            "tipo_documento": "CC",
+            "numero_documento": "444555666",
+            "telefono": "3184445556",
+            "direccion": "Carrera 50 #12-90",
+            "vereda": "Villa Hermosa",
+            "finca": "Las Palmas",
+            "municipio": "Bogotá",
+            "departamento": "Cundinamarca"
+        },
+        {
+            "id": 5,
+            "nombre_completo": "Luis Fernández",
+            "tipo_documento": "CE",
+            "numero_documento": "555666777",
+            "telefono": "3205556667",
+            "direccion": "Calle 30 #8-45",
+            "vereda": "El Naranjal",
+            "finca": "La Victoria",
+            "municipio": "Bucaramanga",
+            "departamento": "Santander"
+        }
+    ],
+    "proveedores": [
+        {
+            "id": 1,
+            "nombre": "Electrodomésticos Rápidos S.A.",
+            "telefono": "6041234567",
+            "correo": "contacto@electrorapidos.com",
+            "direccion": {
+                "nomenclatura": "Carrera 10 #25-30",
+                "vereda": "Centro Empresarial",
+                "finca": "Almacenes Medellín",
+                "municipio": "Medellín",
+                "departamento": "Antioquia"
+            }
+        },
+        {
+            "id": 2,
+            "nombre": "Importaciones Gómez",
+            "telefono": "6017654321",
+            "correo": "ventas@importgomez.com",
+            "direccion": {
+                "nomenclatura": "Carrera 45 #17-80",
+                "vereda": "Zona Comercial",
+                "finca": "Bodegas Bogotá",
+                "municipio": "Bogotá",
+                "departamento": "Cundinamarca"
+            }
+        },
+        {
+            "id": 3,
+            "nombre": "Calzado del Sur Ltda.",
+            "telefono": "6021112233",
+            "correo": "info@calzadosur.com",
+            "direccion": {
+                "nomenclatura": "Avenida Principal #100-15",
+                "vereda": "Barrio Industrial",
+                "finca": "Fábrica del Sur",
+                "municipio": "Cali",
+                "departamento": "Valle del Cauca"
+            }
+        },
+        {
+            "id": 4,
+            "nombre": "Distribuidora de Porcelanas S.A.",
+            "telefono": "6074445556",
+            "correo": "contacto@porcelanadistrib.com",
+            "direccion": {
+                "nomenclatura": "Calle 50 #12-90",
+                "vereda": "Zona Comercial",
+                "finca": "Almacén Central",
+                "municipio": "Bucaramanga",
+                "departamento": "Santander"
+            }
+        },
+        {
+            "id": 5,
+            "nombre": "Utensilios de Cocina Premium",
+            "telefono": "6055556667",
+            "correo": "ventas@utenciliospremium.com",
+            "direccion": {
+                "nomenclatura": "Carrera 30 #8-45",
+                "vereda": "Sector Hotelero",
+                "finca": "Distribuidora Cartagena",
+                "municipio": "Cartagena",
+                "departamento": "Bolívar"
+            }
+        }
+    ]
+}

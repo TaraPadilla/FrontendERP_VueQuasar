@@ -1,0 +1,46 @@
+{
+    "resumen": {
+      "total_ventas": 14800000,
+      "total_gastos": 1320000,
+      "ganancia_neta": 13480000,
+      "ventas_contado": 8900000,
+      "ventas_credito": 5900000
+    },
+    "ganancias_diarias": [
+      { "fecha": "2025-03-13", "ventas": 1200000, "gastos": 100000, "ganancia": 1100000, "contado": 800000, "credito": 400000 },
+      { "fecha": "2025-03-14", "ventas": 1350000, "gastos": 120000, "ganancia": 1230000, "contado": 900000, "credito": 450000 },
+      { "fecha": "2025-03-15", "ventas": 1400000, "gastos": 80000,  "ganancia": 1320000, "contado": 1000000, "credito": 400000 },
+      { "fecha": "2025-03-16", "ventas": 950000,  "gastos": 70000,  "ganancia": 880000,  "contado": 500000,  "credito": 450000 },
+      { "fecha": "2025-03-17", "ventas": 1650000, "gastos": 160000, "ganancia": 1490000, "contado": 1200000, "credito": 450000 },
+      { "fecha": "2025-03-18", "ventas": 1280000, "gastos": 90000,  "ganancia": 1190000, "contado": 800000,  "credito": 480000 },
+      { "fecha": "2025-03-19", "ventas": 1100000, "gastos": 75000,  "ganancia": 1025000, "contado": 600000,  "credito": 500000 },
+      { "fecha": "2025-03-20", "ventas": 1500000, "gastos": 100000, "ganancia": 1400000, "contado": 1000000, "credito": 500000 },
+      { "fecha": "2025-03-21", "ventas": 2000000, "gastos": 140000, "ganancia": 1860000, "contado": 1500000, "credito": 500000 },
+      { "fecha": "2025-03-22", "ventas": 2300000, "gastos": 170000, "ganancia": 2130000, "contado": 900000,  "credito": 1400000 }
+    ],
+    "productos_top": [
+      { "nombre": "Televisor 50 pulgadas", "vendidos": 8, "ganancia_total": 1600000 },
+      { "nombre": "Ventilador de pedestal", "vendidos": 12, "ganancia_total": 1080000 },
+      { "nombre": "Licuadora Oster", "vendidos": 15, "ganancia_total": 900000 },
+      { "nombre": "Plancha de ropa", "vendidos": 10, "ganancia_total": 400000 },
+      { "nombre": "Minicomponente Sony", "vendidos": 6, "ganancia_total": 720000 },
+      { "nombre": "Celular Samsung A14", "vendidos": 5, "ganancia_total": 950000 },
+      { "nombre": "Reloj inteligente", "vendidos": 8, "ganancia_total": 560000 },
+      { "nombre": "Tablet Lenovo", "vendidos": 4, "ganancia_total": 480000 },
+      { "nombre": "Freidora de aire", "vendidos": 7, "ganancia_total": 630000 },
+      { "nombre": "Cafetera Oster", "vendidos": 9, "ganancia_total": 540000 }
+    ],
+    "gastos_por_categoria": [
+      { "categoria": "Combustible", "total": 420000 },
+      { "categoria": "Alimentación", "total": 280000 },
+      { "categoria": "Peajes", "total": 190000 },
+      { "categoria": "Hospedaje", "total": 150000 },
+      { "categoria": "Mantenimiento", "total": 130000 },
+      { "categoria": "Papelería", "total": 40000 },
+      { "categoria": "Repuestos", "total": 50000 },
+      { "categoria": "Transporte local", "total": 60000 },
+      { "categoria": "Comisiones", "total": 80000 },
+      { "categoria": "Otros", "total": 50000 }
+    ]
+  }
+  

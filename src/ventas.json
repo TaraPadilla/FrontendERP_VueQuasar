@@ -1,0 +1,58 @@
+{
+    "ventas": [
+        {
+            "fecha_venta": "2025-03-20",
+            "cliente": "Juan Pérez",
+            "tipo_pago": "Crédito",
+            "cuotas": 4,
+            "monto_abono": 250000,
+            "saldo_pendiente": 750000,
+            "productos": [
+                {
+                    "nombre": "Televisor 50 pulgadas",
+                    "cantidad": 1,
+                    "precio_unitario": 1000000,
+                    "subtotal": 1000000
+                }
+            ]
+        },
+        {
+            "fecha_venta": "2025-03-21",
+            "cliente": "María Gómez",
+            "tipo_pago": "Contado",
+            "cuotas": null,
+            "monto_abono": 0,
+            "saldo_pendiente": 0,
+            "productos": [
+                {
+                    "nombre": "Licuadora Oster",
+                    "cantidad": 1,
+                    "precio_unitario": 250000,
+                    "subtotal": 250000
+                },
+                {
+                    "nombre": "Plancha de ropa",
+                    "cantidad": 1,
+                    "precio_unitario": 120000,
+                    "subtotal": 120000
+                }
+            ]
+        },
+        {
+            "fecha_venta": "2025-03-22",
+            "cliente": "Carlos Ruiz",
+            "tipo_pago": "Crédito",
+            "cuotas": 2,
+            "monto_abono": 300000,
+            "saldo_pendiente": 300000,
+            "productos": [
+                {
+                    "nombre": "Ventilador de pedestal",
+                    "cantidad": 2,
+                    "precio_unitario": 300000,
+                    "subtotal": 600000
+                }
+            ]
+        }
+    ]
+}
