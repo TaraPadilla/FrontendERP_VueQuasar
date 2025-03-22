@@ -34,8 +34,16 @@
           :rows="proveedores"
           :columns="columns"
           row-key="id"
+          :loading="loading"
           @row-click="seleccionarRegistro"
-        />
+        >
+        <template #loading>
+            <div class="row items-center justify-center q-pa-md">
+              <q-spinner-gears color="primary" size="40px" />
+              <div class="q-ml-md text-primary text-h6">Cargando proveedores...</div>
+            </div>
+          </template>
+         </q-table>
       </template>
     </CrudLayout>
   </q-page>
@@ -47,6 +55,7 @@ import apiService from 'src/services/apiService';
 import { reglasProveedor, validarCampos } from "src/services/validationService";
 import { computed, onMounted, reactive, ref } from "vue";
 
+const loading = ref(false);
 
 const proveedor = reactive({
   id: null,
@@ -86,6 +95,7 @@ onMounted(() => {
 });
 
 const cargarProveedores = () => {
+  loading.value = true;
   apiService.get('/proveedores')
     .then(response => {
       proveedores.value = response.data
@@ -93,6 +103,9 @@ const cargarProveedores = () => {
     .catch(() => {
       // El error ya se notifica automáticamente por apiService
     })
+    .finally(() => {
+          loading.value = false;
+    });
 }
 
 // Función para seleccionar un registro desde la tabla

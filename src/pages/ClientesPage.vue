@@ -34,9 +34,17 @@
           title="Clientes"
           :rows="clientes"
           :columns="columns"
+          :loading="loading"
           row-key="id"
           @row-click="seleccionarRegistro"
-        />
+        >
+          <template #loading>
+            <div class="row items-center justify-center q-pa-md">
+              <q-spinner-gears color="primary" size="40px" />
+              <div class="q-ml-md text-primary text-h6">Cargando clientes...</div>
+            </div>
+          </template>
+         </q-table>
       </template>
     </CrudLayout>
   </q-page>
@@ -65,6 +73,7 @@ import { computed, onMounted, reactive, ref } from "vue";
     const registroSeleccionado = ref(false);
     const modoEdicion = ref(false);
     const errores = ref({});
+    const loading = ref(false);
 
     const tipoDocumentos = ["CC", "TI", "CE", "NIT"];
 
@@ -86,6 +95,7 @@ import { computed, onMounted, reactive, ref } from "vue";
     });
 
     const cargarClientes = () => {
+      loading.value = true;
       apiService.get('/clientes')
         .then(response => {
           clientes.value = response.data
@@ -93,6 +103,9 @@ import { computed, onMounted, reactive, ref } from "vue";
         .catch(() => {
           // El error ya se notifica automáticamente por apiService
         })
+        .finally(() => {
+          loading.value = false;
+        });
     }
 
     // Función para seleccionar un registro desde la tabla
