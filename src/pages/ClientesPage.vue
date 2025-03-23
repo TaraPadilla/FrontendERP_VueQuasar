@@ -35,6 +35,9 @@
           :rows="clientes"
           :columns="columns"
           :loading="loading"
+          :rows-per-page-options="[10]"
+          :rows-per-page="10"
+          virtual-scroll
           row-key="id"
           @row-click="seleccionarRegistro"
         >

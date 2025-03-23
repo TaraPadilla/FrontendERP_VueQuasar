@@ -1,18 +1,20 @@
-export const reglasProducto  = {
-  nombre: { requerido: true, tipo: "string", min: 5 },
-  descripcion: { requerido: true, tipo: "string", min: 5 },
-  categoria: { requerido: true, tipo: "string" },
-  proveedor: { requerido: true, tipo: "string" },
-  articulo: { requerido: true, tipo: "string" },
+export const reglasProducto = {
+  nombre: { requerido: true, tipo: "string", min: 2 },
+  descripcion: { requerido: true, tipo: "string", min: 1 },
+  categoria_id: { requerido: true, tipo: "numero" },
+  proveedor_id: { requerido: false, tipo: "numero" },
+  referencia: { requerido: true, tipo: "string", min: 2 },
   color: { requerido: false, tipo: "string" },
-  tallaje: { requerido: false, tipo: "string" },
+  talla: { requerido: false, tipo: "string" },
   marca: { requerido: false, tipo: "string" },
-  precioCompra: { requerido: true, tipo: "numero", min: 1 },
-  porcentajeVenta: { requerido: true, tipo: "numero", min: 0 },
-  precioVenta: { requerido: true, tipo: "numero", min: 1 },
-  ganancia: { requerido: true, tipo: "numero", min: 0 },
-  stock: { requerido: true, tipo: "numero", min: 0 }
+  precio_compra: { requerido: true, tipo: "numero", min: 0 },
+  porcentaje_venta: { requerido: false, tipo: "numero", min: 0, max: 100 },
+  precio_venta: { requerido: true, tipo: "numero", min: 0 },
+  ganancia: { requerido: false, tipo: "numero", min: 0 },
+  stock: { requerido: false, tipo: "numero", min: 0 }
 };
+
+
 
 export const reglasCliente = {
   nombre_completo: { requerido: true, tipo: "string", min: 5 },
