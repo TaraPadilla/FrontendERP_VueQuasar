@@ -159,7 +159,6 @@ const guardarRegistro = () => {
   if (Object.keys(errores.value).length > 0) return;
 
   if (proveedor.id === null) {
-      // Simula agregar un nuevo producto
       apiService.post('/proveedores', proveedor)
       .then(response => {
         proveedores.value.push(response.data) // agrega el cliente retornado

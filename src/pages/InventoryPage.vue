@@ -33,6 +33,7 @@
                 label="Proveedor"
                 :options="options"
                 @filter="filterFn"
+                @update:model-value="onChangeProveedor"
                 option-label="nombre_completo"
                 option-value="id"
                 emit-value
@@ -118,6 +119,11 @@ const proveedores = ref([]);
 
 const options = ref([]);
 
+const onChangeProveedor = (valor) => {
+  console.log('¡Seleccionaste algo! proveedor_id es', valor)
+  console.log('Proveedor ID:', formData.proveedor_id);
+}
+
 const filterFn = (val, update) => {
   const needle = val.toLowerCase();
   update(() => {
@@ -151,7 +157,6 @@ onMounted(() => {
 const cargarProveedores = () => {
   return apiService.get('/proveedores')
     .then(res => {
-      console.log('Proveedores desde API:', res.data);
       proveedores.value = res.data;
       options.value = res.data; // <-- aquí
     });
@@ -221,25 +226,32 @@ const eliminarRegistro = () => {
 
 // Función para validar y guardar los cambios
 const guardarRegistro = () => {
-  errores.value = validarCampos(formData);
+  formData.categoria_id = 1;
+  errores.value = validarCampos(formData, reglasProducto);
   if (Object.keys(errores.value).length > 0) return;
 
   if (formData.id === null) {
-    // Simula agregar un nuevo producto
-    formData.id = inventario.value.length + 1;
-    inventario.value.push({ ...formData });
+    apiService.post('/productos', formData)
+      .then(response => {
+        inventario.value.push(response.data) // agrega el cliente retornado
+        modoEdicion.value = false
+      })
+      .catch(() => {
+        // El error ya se maneja automáticamente con Notify en apiService
+      })
   } else {
-    // Simula actualización
-    const index = inventario.value.findIndex(p => p.id === formData.id);
-    if (index !== -1) inventario.value[index] = { ...formData };
+      apiService.put('/productos', formData)
+      .then(response => {
+        const index = inventario.value.findIndex(p => p.id === formData.id)
+        if (index !== -1) {
+          inventario.value[index] = response.data
+        }
+        modoEdicion.value = false
+      })
+      .catch(() => {
+        // El error ya lo muestra apiService
+      })
   }
   modoEdicion.value = false;
 };
 </script>
-
-<style scoped>
-.q-card {
-  width: 100%;
-  max-width: 400px;
-}
-</style>

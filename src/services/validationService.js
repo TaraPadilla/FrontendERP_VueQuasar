@@ -1,8 +1,8 @@
 export const reglasProducto = {
   nombre: { requerido: true, tipo: "string", min: 2 },
   descripcion: { requerido: true, tipo: "string", min: 1 },
-  categoria_id: { requerido: true, tipo: "numero" },
-  proveedor_id: { requerido: false, tipo: "numero" },
+  categoria_id: { requerido: false, tipo: "numero" },
+  proveedor_id: { requerido: true, tipo: "numero" },
   referencia: { requerido: true, tipo: "string", min: 2 },
   color: { requerido: false, tipo: "string" },
   talla: { requerido: false, tipo: "string" },
