@@ -92,6 +92,12 @@ const linksList = [
     caption: 'Gestión de gastos',
     icon: 'money_off',
     to: '/gastos' // Redirige al CRUD de productos
+  },
+  {
+    title: 'Categorías',
+    caption: 'Gestión de categorías',
+    icon: 'category',
+    to: '/categorias' // Redirige al CRUD de productos
   }
   // {
   //   title: 'Quasar Awesome',

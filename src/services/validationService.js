@@ -11,7 +11,7 @@ export const reglasProducto = {
   porcentaje_venta: { requerido: false, tipo: "numero", min: 0, max: 100 },
   precio_venta: { requerido: true, tipo: "numero", min: 0 },
   ganancia: { requerido: false, tipo: "numero", min: 0 },
-  stock: { requerido: false, tipo: "numero", min: 0 }
+  stock: { requerido: true, tipo: "numero", min: 0 }
 };
 
 
@@ -46,10 +46,15 @@ export function validarCampos(datos, reglas) {
 
     if (regla.requerido && (!valor || valor.toString().trim() === "")) {
       errores[campo] = "Este campo es obligatorio.";
-    } else if (regla.tipo === "numero" && isNaN(valor)) {
+    }
+    if (regla.tipo === "numero" && isNaN(valor)) {
       errores[campo] = "Debe ser un número válido.";
-    } else if (regla.min !== undefined && valor < regla.min) {
+    }
+    if (regla.min !== undefined && valor < regla.min) {
       errores[campo] = `Debe ser mayor o igual a ${regla.min}.`;
+    }
+    if (regla.max !== undefined && valor > regla.max) {
+      errores[campo] = `Debe ser menor o igual a ${regla.max}.`;
     }
   });
 

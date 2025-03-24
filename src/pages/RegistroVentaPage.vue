@@ -26,10 +26,7 @@
         <div class="col-12 col-md-4">
           <q-option-group
             v-model="venta.tipo_pago"
-            :options="[
-              { label: 'Contado', value: 'Contado' },
-              { label: 'Crédito', value: 'Crédito' }
-            ]"
+            :options="opcionesTipoPago"
             type="radio"
             label="Tipo de Pago"
             inline
@@ -39,7 +36,7 @@
       </div>
 
       <div
-        v-if="venta.tipo_pago === 'Crédito'"
+        v-if="venta.tipo_pago === 'credito'"
         class="row q-col-gutter-md q-mt-sm items-start"
       >
         <div class="col-12 col-md-4">
@@ -80,28 +77,72 @@
         <q-col cols="12" md="6">
           <q-input dense debounce="300" v-model="filtroProducto"
             label="Buscar producto" class="q-mb-sm" />
+            <template v-if="!loading">
+              <div class="relative-position">
+                <!-- Flecha izquierda -->
+                <q-btn
+                  round
+                  dense
+                  flat
+                  icon="chevron_left"
+                  class="absolute-left self-center z-top"
+                  @click="scrollProductos(-1)"
+                />
 
-          <q-table
-            dense
-            grid
-            hide-header
-            :rows="productosFiltrados"
-            :columns="columnasProductos"
-            row-key="nombre">
-            <template v-slot:item="props">
-              <q-card class="q-ma-xs cursor-pointer" @click="agregarProducto(props.row)">
-                <q-card-section>
-                  <div class="text-subtitle1">{{ props.row.nombre }}</div>
-                  <div class="text-caption">Stock: {{ props.row.stock }}</div>
-                  <div class="text-caption">Precio: ${{ props.row.precio_unitario }}</div>
-                </q-card-section>
-              </q-card>
+                <!-- Galería horizontal de productos -->
+                <div
+                  ref="scrollContainer"
+                  class="row no-wrap q-col-gutter-sm scroll-x"
+                  style="overflow-x: auto; scroll-behavior: smooth;"
+                >
+                  <div
+                    v-for="producto in productosFiltrados"
+                    :key="producto.id"
+                    class="col-auto"
+                  >
+                    <q-card
+                      class="q-ma-xs cursor-pointer"
+                      style="min-width: 180px; max-width: 200px;"
+                      @click="agregarProducto(producto)"
+                    >
+                      <q-card-section>
+                        <div class="text-subtitle2 ellipsis">{{ producto.nombre }}</div>
+                        <div class="text-caption">Stock: {{ producto.stock }}</div>
+                        <div class="text-caption">Precio: ${{ producto.precio_unitario }}</div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+
+                <!-- Flecha derecha -->
+                <q-btn
+                  round
+                  dense
+                  flat
+                  icon="chevron_right"
+                  class="absolute-right self-center z-top"
+                  @click="scrollProductos(1)"
+                />
+              </div>
             </template>
-         </q-table>
-        </q-col>
 
+            <template v-else>
+              <div class="row no-wrap q-col-gutter-sm scroll-x" style="overflow-x: auto;">
+                <div v-for="n in 6" :key="n" class="col-auto">
+                  <q-card class="q-ma-xs" style="min-width: 180px; max-width: 200px;">
+                    <q-card-section>
+                      <q-skeleton type="text" class="q-mb-sm" />
+                      <q-skeleton type="text" width="60%" class="q-mb-xs" />
+                      <q-skeleton type="text" width="40%" />
+                    </q-card-section>
+                  </q-card>
+                </div>
+              </div>
+            </template>
+
+        </q-col>
         <!-- Tabla tipo factura -->
-        <q-col cols="12" md="6">
+        <q-col cols="6" md="6">
           <q-table
             dense
             flat
@@ -110,31 +151,68 @@
             :columns="columnasFactura"
             row-key="nombre"
             title="Detalle de la Venta"
+            class="q-mt-sm"
           >
+            <template v-slot:body-cell-precio_venta="props">
+            <q-td class="text-left">
+              <q-input
+                dense
+                type="text"
+                v-model="props.row._precio_venta_editable"
+                @blur="() => {
+                  const limpio = Number(props.row._precio_venta_editable.replace(/\D/g, ''))
+                  if (!isNaN(limpio) && limpio > 0) {
+                    props.row.precio_venta = limpio
+                    props.row._precio_venta_editable = formatearPesos(limpio)
+                    props.row._precio_editado = props.row._precio_venta_editable !== props.row.precio_original
+                    actualizarTotales()
+                  } else {
+                    props.row._precio_venta_editable = formatearPesos(props.row.precio_venta)
+                  }
+                }"
+                class="q-input--no-padding"
+                style="max-width: 120px"
+                prefix="$"
+                :color="props.row._precio_editado ? 'warning' : 'primary'"
+                :bg-color="props.row._precio_editado ? 'yellow-1' : ''"
+              >
+                <q-tooltip v-if="props.row._precio_editado">
+                  Precio modificado
+                </q-tooltip>
+              </q-input>
+            </q-td>
+          </template>
             <template v-slot:body-cell-cantidad="props">
-              <q-td>
+              <q-td class="text-left">
                 <q-input
                   dense
                   type="number"
                   v-model.number="props.row.cantidad"
                   @blur="actualizarTotales"
                   min="1"
+                  class="q-input--no-padding"
+                  style="max-width: 80px"
                 />
               </q-td>
             </template>
+
             <template v-slot:body-cell-subtotal="props">
-              <q-td>{{ props.row.cantidad * props.row.precio_unitario }}</q-td>
+              <q-td class="text-left">
+                ${{ (props.row.cantidad * props.row.precio_venta).toLocaleString('es-CO') }}
+              </q-td>
             </template>
+
             <template v-slot:body-cell-acciones="props">
-              <q-td>
+              <q-td class="text-center">
                 <q-btn dense icon="delete" color="negative" flat @click="eliminarProducto(props.row)" />
               </q-td>
             </template>
+
             <template v-slot:bottom-row>
               <q-tr>
                 <q-td colspan="3" class="text-right text-bold">Total:</q-td>
                 <q-td class="text-right text-bold">
-                  {{ totalVenta.toLocaleString("es-CO") }}
+                  ${{ totalVenta.toLocaleString("es-CO") }}
                 </q-td>
                 <q-td />
               </q-tr>
@@ -146,7 +224,7 @@
     <q-card class="q-pa-md q-mt-md">
       <div class="row justify-end q-gutter-sm">
         <q-btn label="Limpiar" color="warning" @click="limpiarFormulario" />
-        <q-btn label="Guardar" color="primary" @click="guardarVenta" />
+        <q-btn label="Guardar" color="primary" @click="guardarRegistro" />
       </div>
     </q-card>
 
@@ -156,21 +234,57 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import ClienteSelect from 'src/components/ClienteSelect.vue'
-import terceros from 'src/terceros.json'
-import { computed, reactive, ref } from 'vue'
+import apiService from 'src/services/apiService'
+import { computed, onMounted, reactive, ref } from 'vue'
+
+
+function formatearPesos(valor) {
+  return Number(valor || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })
+}
+
+
+const precioTemporal = ref({})
+if (!precioTemporal.value || typeof precioTemporal.value !== 'object') {
+  precioTemporal.value = {}
+}
 
 
 const $q = useQuasar()
 
-
-const clientes = terceros.clientes.map(c => ({ nombre: c.nombre_completo }))
-
-const productosDisponibles = [
-  { nombre: "Televisor 50 pulgadas", stock: 5, precio_unitario: 1000000 },
-  { nombre: "Licuadora Oster", stock: 10, precio_unitario: 250000 },
-  { nombre: "Plancha de ropa", stock: 7, precio_unitario: 120000 },
-  { nombre: "Ventilador de pedestal", stock: 6, precio_unitario: 300000 }
+const opcionesTipoPago = [
+  { label: 'Contado', value: 'contado' },
+  { label: 'Crédito', value: 'credito' } // sin tilde
 ]
+
+const productos = ref([])
+const loading = ref(false)
+const scrollContainer = ref(null)
+
+onMounted(() => {
+  cargarProductos()
+})
+
+function scrollProductos(direccion) {
+  const el = scrollContainer.value
+  if (!el) return
+
+  const scrollCantidad = 420 * direccion // ancho de tarjeta + margen
+  el.scrollBy({ left: scrollCantidad, behavior: 'smooth' })
+}
+
+const cargarProductos = () => {
+  loading.value = true
+  return apiService.get('/productos')
+    .then(response => {
+      productos.value = response.data
+    })
+    .catch(() => {
+      // El error ya se notifica automáticamente por apiService
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 
 const venta = reactive({
   cliente: null,
@@ -186,26 +300,26 @@ const filtroProducto = ref("")
 const columnasProductos = [
   { name: "nombre", label: "Nombre", field: "nombre" },
   { name: "stock", label: "Stock", field: "stock" },
-  { name: "precio_unitario", label: "Precio", field: "precio_unitario" }
+  { name: "precio_venta", label: "Precio", field: "precio_venta" }
 ]
 
 const columnasFactura = [
-  { name: "nombre", label: "Producto", field: "nombre" },
-  { name: "precio_unitario", label: "Precio Unitario", field: "precio_unitario", align: "right" },
-  { name: "cantidad", label: "Cantidad", field: "cantidad", align: "right" },
-  { name: "subtotal", label: "Subtotal", field: "subtotal", align: "right" },
-  { name: "acciones", label: "", field: "acciones", align: "center" }
+  { name: "nombre", label: "Producto", field: "nombre", align: "left" },
+  { name: "precio_venta", label: "Precio", field: "precio_venta", align: "left"},
+  { name: "cantidad", label: "Cantidad", field: "cantidad", align: "left" },
+  { name: "subtotal", label: "Subtotal", field: "subtotal", align: "left"},
+  { name: "acciones", label: "", field: "acciones", align: "left"}
 ]
 
 const productosFiltrados = computed(() => {
   const filtro = filtroProducto.value.toLowerCase()
-  return productosDisponibles.filter(p =>
+  return productos.value.filter(p =>
     p.nombre.toLowerCase().includes(filtro)
   )
 })
 
 const totalVenta = computed(() => {
-  return venta.productos.reduce((sum, p) => sum + (p.precio_unitario * p.cantidad), 0)
+  return venta.productos.reduce((sum, p) => sum + (p.precio_venta * p.cantidad), 0)
 })
 
 const calcularSaldo = computed(() => {
@@ -216,11 +330,16 @@ function agregarProducto(producto) {
   const existente = venta.productos.find(p => p.nombre === producto.nombre)
   if (!existente) {
     venta.productos.push({
+      id: producto.id,
       nombre: producto.nombre,
       cantidad: 1,
-      precio_unitario: producto.precio_unitario,
-      subtotal: producto.precio_unitario
+      precio_venta: producto.precio_venta,
+      precio_original: formatearPesos(producto.precio_venta),
+      _precio_venta_editable: formatearPesos(producto.precio_venta),
+      _precio_editado: false,
+      subtotal: producto.precio_venta
     })
+
   }
 }
 
@@ -230,7 +349,7 @@ function eliminarProducto(row) {
 
 function actualizarTotales() {
   venta.productos.forEach(p => {
-    p.subtotal = p.cantidad * p.precio_unitario
+    p.subtotal = p.cantidad * p.precio_venta
   })
 }
 
@@ -253,6 +372,36 @@ function guardarVenta() {
   console.log("VENTA GUARDADA:", JSON.stringify(ventaFinal, null, 2))
   $q.notify({ type: 'positive', message: 'Venta registrada (ver consola)' })
 }
+
+const guardarRegistro = () => {
+  const ventaFinal = {
+    fecha_venta: venta.fecha_venta,
+    tipo_pago: venta.tipo_pago.toLowerCase(),
+    cliente_id: venta.cliente?.id || null,
+    total: totalVenta.value,
+    abono_inicial: venta.tipo_pago === 'credito' ? venta.monto_abono : 0,
+    cuotas: venta.tipo_pago === 'credito' ? venta.cuotas : 0,
+    saldo_pendiente: venta.tipo_pago === 'credito' ? calcularSaldo.value : 0,
+    usuario_id: 1,
+    productos: venta.productos.map(p => ({
+      producto_id: p.id,
+      cantidad: p.cantidad,
+      precio_venta: p.precio_venta,
+      subtotal: p.subtotal
+    }))
+  }
+
+
+  apiService.post('/ventas', ventaFinal)
+    .then(() => {
+      $q.notify({ type: 'positive', message: 'Venta registrada exitosamente' })
+      limpiarFormulario()
+    })
+    .catch(() => {
+      // Manejo de error automático en apiService
+    })
+}
+
 
 function limpiarFormulario() {
   venta.cliente = null
