@@ -59,6 +59,13 @@ export const reglasVenta = {
   productos: { requerido: true, tipo: "array", min: 1 },
 };
 
+export const reglasGasto = {
+  usuario_id: { requerido: true, tipo: "entero" },
+  categoria_id: { requerido: true, tipo: "entero" },
+  observacion: { requerido: false, tipo: "texto" },
+  valor: { requerido: true, tipo: "numero", min: 0 },
+  fecha_hora: { requerido: true, tipo: "fecha" }
+}
 
 // Función para validar un objeto basado en sus reglas
 export function validarCampos(datos, reglas) {
