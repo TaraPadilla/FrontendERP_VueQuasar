@@ -36,6 +36,26 @@ export const reglasProveedor = {
   departamento: { requerido: true, tipo: "string" }
 };
 
+export const reglasVenta = {
+  cliente: { requerido: true, tipo: "objeto" },
+  fecha_venta: { requerido: true, tipo: "string", formato: "fecha" },
+  tipo_pago: { requerido: true, tipo: "string", valores: ["contado", "credito"] },
+  monto_abono: {
+    requerido: true,
+    tipo: "numero",
+    min: 0,
+    condicion: (venta) => venta.tipo_pago === 'credito'
+  },
+  cuotas: {
+    requerido: true,
+    tipo: "numero",
+    min: 1,
+    condicion: (venta) => venta.tipo_pago === 'credito'
+  },
+  productos: { requerido: true, tipo: "array", min: 1 },
+};
+
+
 // Función para validar un objeto basado en sus reglas
 export function validarCampos(datos, reglas) {
   const errores = {};
@@ -44,9 +64,24 @@ export function validarCampos(datos, reglas) {
     const regla = reglas[campo];
     const valor = datos[campo];
 
-    if (regla.requerido && (!valor || valor.toString().trim() === "")) {
-      errores[campo] = "Este campo es obligatorio.";
+    // Omitir validación si la condición no se cumple
+    if (regla.condicion && !regla.condicion(datos)) {
+      return
     }
+
+    if (regla.requerido) {
+      const esVacio =
+        valor === null ||
+        valor === undefined ||
+        (typeof valor === 'string' && valor.trim() === '') ||
+        (regla.tipo !== 'numero' && valor === '')
+
+      if (esVacio) {
+        errores[campo] = "Este campo es obligatorio."
+        return
+      }
+    }
+
     if (regla.tipo === "numero" && isNaN(valor)) {
       errores[campo] = "Debe ser un número válido.";
     }

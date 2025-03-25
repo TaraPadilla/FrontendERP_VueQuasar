@@ -108,7 +108,7 @@
                       <q-card-section>
                         <div class="text-subtitle2 ellipsis">{{ producto.nombre }}</div>
                         <div class="text-caption">Stock: {{ producto.stock }}</div>
-                        <div class="text-caption">Precio: ${{ producto.precio_unitario }}</div>
+                        <div class="text-caption">Precio: ${{ formatearPesos(producto.precio_venta) }}</div>
                       </q-card-section>
                     </q-card>
                   </div>
@@ -160,7 +160,7 @@
                 type="text"
                 v-model="props.row._precio_venta_editable"
                 @blur="() => {
-                  const limpio = Number(props.row._precio_venta_editable.replace(/\D/g, ''))
+                  const limpio = parseInt(props.row._precio_venta_editable.replace(/[^\d]/g, ''), 10) || 0
                   if (!isNaN(limpio) && limpio > 0) {
                     props.row.precio_venta = limpio
                     props.row._precio_venta_editable = formatearPesos(limpio)
@@ -229,27 +229,58 @@
     </q-card>
 
   </q-page>
+
+  <q-dialog v-model="mostrarDialogo" persistent transition-show="scale" transition-hide="scale">
+  <q-card style="min-width: 340px; max-width: 500px" class="q-pa-sm">
+    <q-card-section class="row items-center q-gutter-sm">
+      <q-icon :name="esExito ? 'check_circle' : 'warning'" :color="esExito ? 'positive' : 'negative'" size="md" />
+      <div :class="['text-h6', esExito ? 'text-positive' : 'text-negative']">
+        {{ esExito ? 'Éxito' : 'Errores en el formulario' }}
+      </div>
+    </q-card-section>
+
+    <q-separator />
+
+    <q-card-section>
+      <div v-if="esExito">
+        {{ mensajeDialogo }}
+      </div>
+      <q-list v-else dense bordered separator>
+        <q-item v-for="(error, index) in erroresLista" :key="index">
+          <q-item-section avatar>
+            <q-icon name="report_problem" color="warning" />
+          </q-item-section>
+          <q-item-section>{{ error }}</q-item-section>
+        </q-item>
+      </q-list>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cerrar" color="primary" v-close-popup />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
+
+
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar'
+import { QSpinnerGears, useQuasar } from 'quasar'
 import ClienteSelect from 'src/components/ClienteSelect.vue'
 import apiService from 'src/services/apiService'
+import { reglasVenta, validarCampos } from 'src/services/validationService'
 import { computed, onMounted, reactive, ref } from 'vue'
 
-
-function formatearPesos(valor) {
-  return Number(valor || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })
-}
-
-
-const precioTemporal = ref({})
-if (!precioTemporal.value || typeof precioTemporal.value !== 'object') {
-  precioTemporal.value = {}
-}
-
-
 const $q = useQuasar()
+
+const errores = ref([])
+const mostrarDialogo = ref(false)
+const mensajeDialogo = ref('')
+const erroresLista = ref([])
+const esExito = ref(false)
+
+
 
 const opcionesTipoPago = [
   { label: 'Contado', value: 'contado' },
@@ -264,6 +295,7 @@ onMounted(() => {
   cargarProductos()
 })
 
+
 function scrollProductos(direccion) {
   const el = scrollContainer.value
   if (!el) return
@@ -271,6 +303,11 @@ function scrollProductos(direccion) {
   const scrollCantidad = 420 * direccion // ancho de tarjeta + margen
   el.scrollBy({ left: scrollCantidad, behavior: 'smooth' })
 }
+
+function formatearPesos(valor) {
+  return Number(valor || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })
+}
+
 
 const cargarProductos = () => {
   loading.value = true
@@ -289,7 +326,7 @@ const cargarProductos = () => {
 const venta = reactive({
   cliente: null,
   fecha_venta: new Date().toISOString().substr(0, 10),
-  tipo_pago: "Contado",
+  tipo_pago: null,
   cuotas: null,
   monto_abono: 0,
   productos: []
@@ -353,27 +390,14 @@ function actualizarTotales() {
   })
 }
 
-function guardarVenta() {
-  const ventaFinal = {
-    fecha_venta: venta.fecha_venta,
-    cliente: venta.cliente,
-    tipo_pago: venta.tipo_pago,
-    cuotas: venta.tipo_pago === "Crédito" ? venta.cuotas : null,
-    monto_abono: venta.tipo_pago === "Crédito" ? venta.monto_abono : 0,
-    saldo_pendiente: calcularSaldo.value,
-    productos: venta.productos.map(p => ({
-      nombre: p.nombre,
-      cantidad: p.cantidad,
-      precio_unitario: p.precio_unitario,
-      subtotal: p.precio_unitario * p.cantidad
-    }))
+const guardarRegistro = () => {
+  errores.value = validarCampos(venta, reglasVenta);
+
+  if (Object.keys(errores.value).length > 0) {
+    mostrarErrores(errores.value) // <- pasas el .value aquí
+    return
   }
 
-  console.log("VENTA GUARDADA:", JSON.stringify(ventaFinal, null, 2))
-  $q.notify({ type: 'positive', message: 'Venta registrada (ver consola)' })
-}
-
-const guardarRegistro = () => {
   const ventaFinal = {
     fecha_venta: venta.fecha_venta,
     tipo_pago: venta.tipo_pago.toLowerCase(),
@@ -391,14 +415,22 @@ const guardarRegistro = () => {
     }))
   }
 
+  $q.loading.show({
+    message: 'Guardando venta...',
+    spinner: QSpinnerGears,
+    spinnerColor: 'primary'
+  })
 
   apiService.post('/ventas', ventaFinal)
     .then(() => {
-      $q.notify({ type: 'positive', message: 'Venta registrada exitosamente' })
+      mostrarExito('La venta fue registrada exitosamente.')
       limpiarFormulario()
     })
     .catch(() => {
       // Manejo de error automático en apiService
+    })
+    .finally(() => {
+      $q.loading.hide()
     })
 }
 
@@ -406,11 +438,34 @@ const guardarRegistro = () => {
 function limpiarFormulario() {
   venta.cliente = null
   venta.fecha_venta = new Date().toISOString().substr(0, 10)
-  venta.tipo_pago = "Contado"
+  venta.tipo_pago = null
   venta.cuotas = null
   venta.monto_abono = 0
   venta.productos = []
   filtroProducto.value = ""
 }
+
+function mostrarErrores(erroresObj) {
+  erroresLista.value = Object.entries(erroresObj).map(
+    ([campo, mensaje]) => `${campo.charAt(0).toUpperCase() + campo.slice(1)}: ${mensaje}`
+  )
+  esExito.value = false
+  mostrarDialogo.value = true
+}
+
+function mostrarExito(mensaje) {
+  mensajeDialogo.value = mensaje
+  erroresLista.value = [] // Limpiar lista de errores si hay
+  esExito.value = true
+  mostrarDialogo.value = true
+}
+
+
+function formatearCampo(campo) {
+  return campo.charAt(0).toUpperCase() + campo.slice(1).replace(/_/g, ' ')
+}
+
+
+
 
 </script>
