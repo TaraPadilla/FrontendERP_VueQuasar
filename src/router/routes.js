@@ -9,7 +9,8 @@ const routes = [
       { path: 'ventas', component: () => import('src/pages/VentasPage.vue') },
       { path: 'gastos', component: () => import('src/pages/GastosPage.vue') },
       { path: 'dashboard', component: () => import('src/pages/DashboardPage.vue') },
-      { path: 'categorias', component: () => import('src/pages/CategoriasPage.vue') }
+      { path: 'categorias', component: () => import('src/pages/CategoriasPage.vue') },
+      { path: 'pagos', component: () => import('src/pages/PagosPage.vue') }
     ]
   },
 

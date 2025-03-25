@@ -88,6 +88,12 @@ const linksList = [
     to: '/ventas' // Redirige al CRUD de productos
   },
   {
+    title: 'Pagos',
+    caption: 'Gestión de pagos',
+    icon: 'payment',
+    to: '/pagos' // Redirige al CRUD de productos
+  },
+  {
     title: 'Gastos',
     caption: 'Gestión de gastos',
     icon: 'money_off',

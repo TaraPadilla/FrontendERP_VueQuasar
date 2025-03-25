@@ -14,7 +14,11 @@ export const reglasProducto = {
   stock: { requerido: true, tipo: "numero", min: 0 }
 };
 
-
+export const reglasPago = {
+  venta_id: { requerido: true, tipo: "entero" },
+  monto: { requerido: true, tipo: "numero", min: 1 },
+  fecha: { requerido: true, tipo: "fecha" }
+};
 
 export const reglasCliente = {
   nombre_completo: { requerido: true, tipo: "string", min: 5 },
