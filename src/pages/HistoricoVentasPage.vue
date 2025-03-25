@@ -122,6 +122,7 @@ const columnas = [
   { name: 'fecha_venta', label: 'Fecha', field: 'fecha_venta', align: 'left' },
   { name: 'cliente', label: 'Cliente', field: row => row.cliente?.nombre_completo || '', align: 'left' },
   { name: 'tipo_pago', label: 'Pago', field: 'tipo_pago', align: 'left' },
+  { name: 'total', label: 'Total', field: row => '$'+ formatearPesos(row.total), align: 'left' },
   { name: 'monto_abono', label: 'Abono', field: row => '$'+ formatearPesos(row.abono_inicial), align: 'left' },
   { name: 'saldo_pendiente', label: 'Saldo', field: row => '$'+ formatearPesos(row.saldo_pendiente), align: 'left' }
 ]

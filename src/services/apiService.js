@@ -5,8 +5,8 @@ import { Notify } from 'quasar'
 
 // Instancia de Axios con la URL base de tu API Laravel
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8094/api', // cambia esto según tu dominio real
-  //baseURL: 'https://importadosospinacos.lat/api',
+  //baseURL: 'http://localhost:8094/api', // cambia esto según tu dominio real
+  baseURL: 'https://importadosospinacos.lat/api',
   headers: {
     'Content-Type': 'application/json'
   }

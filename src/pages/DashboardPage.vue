@@ -49,6 +49,34 @@
         </q-card-section>
       </q-card>
     </div>
+    <!-- Area de porcentaje -->
+    <q-row class="q-mt-md">
+      <q-col cols="12" sm="6" md="4">
+        <q-card class="bg-indigo-1 text-indigo-10 shadow-4 bordered">
+          <q-card-section class="row items-center justify-between">
+            <div class="text-h6">Ganancia por porcentaje</div>
+            <q-input
+              v-model.number="porcentajeSocio"
+              type="number"
+              min="0"
+              max="100"
+              dense
+              outlined
+              suffix="%"
+              class="q-ml-sm"
+              style="width: 100px"
+            />
+          </q-card-section>
+          <q-card-section class="text-center">
+            <div class="text-h4">
+              {{ gananciaSocio }}
+            </div>
+            <div class="text-caption">del {{ porcentajeSocio }}% de la ganancia neta</div>
+          </q-card-section>
+        </q-card>
+      </q-col>
+    </q-row>
+
 
     <!-- Gráfico: Ganancias diarias -->
     <q-card flat bordered class="q-mb-md">
@@ -70,17 +98,26 @@
 
       <q-card flat bordered class="col-12 col-md-6">
         <q-card-section>
+          <div class="text-h6">Ganancia por Tipo</div>
+          <apexcharts type="donut" height="300" :options="chartGananciaTipo.options" :series="chartGananciaTipo.series" />
+        </q-card-section>
+      </q-card>
+
+      <q-card flat bordered class="col-12 col-md-8">
+        <q-card-section>
           <div class="text-h6">Productos Más Rentables</div>
-          <apexcharts type="bar" height="300" :options="graficaProductos.options" :series="graficaProductos.series" />
+          <apexcharts type="bar" height="500" :options="graficaProductos.options" :series="graficaProductos.series" />
         </q-card-section>
       </q-card>
     </div>
   </q-page>
+
 </template>
 
 <script setup>
 import data from 'src/ganancias.json'
 import apiService from 'src/services/apiService'
+import { formatearPesos } from 'src/utils/utils'
 import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 
 const apexcharts = defineAsyncComponent(() => import('vue3-apexcharts'))
@@ -89,6 +126,41 @@ const rangoFechas = ref(null)
 const fromDate = ref(null)
 const toDate = ref(null)
 const ganancias = ref([])
+const gastos = ref([])
+const porcentajeSocio = ref(20)
+const gananciaPorTipo = ref([])
+
+const gananciaSocio = computed(() => {
+  if (!resumenFiltrado.value) return 0
+  return '$' + formatearPesos((resumenFiltrado.value.ganancia_neta * porcentajeSocio.value) / 100)
+})
+
+const cargarGananciaPorTipo  = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+
+    const response = await apiService.get('/ganancias-por-tipo', params)
+    gananciaPorTipo.value = response.data
+  } catch (error) {
+    // Interceptor ya maneja errores
+  }
+}
+
+const cargarGastos = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+
+    const response = await apiService.get('/gastos-por-categoria', params)
+    gastos.value = response.data
+  } catch (error) {
+    // Interceptor ya maneja errores
+  }
+}
+
 
 const cargarKpis = async () => {
   try {
@@ -105,7 +177,6 @@ const cargarKpis = async () => {
   }
 }
 
-
 const cargarGanancias = async () => {
   try {
     const params = {}
@@ -119,14 +190,32 @@ const cargarGanancias = async () => {
   }
 }
 
+const cargarProductos = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+
+    const response = await apiService.get('/productos-rentables', params)
+    productos.value = response.data
+  } catch (error) {
+    // Manejo por interceptor
+  }
+}
+
 onMounted(() => {
   cargarKpis()
   cargarGanancias()
+  cargarGastos()
+  cargarProductos()
+  cargarGananciaPorTipo()
 });
 watch([fromDate, toDate], () => {
-  console.log('Fechas cambiadas:', fromDate.value, toDate.value)
   cargarKpis()
   cargarGanancias()
+  cargarGastos()
+  cargarProductos()
+  cargarGananciaPorTipo()
 })
 watch(rangoFechas, (nuevo) => {
   if (nuevo && nuevo.from && nuevo.to) {
@@ -138,9 +227,6 @@ watch(rangoFechas, (nuevo) => {
   }
 })
 
-
-
-
 const textoRangoFechas = computed(() => {
   if (!rangoFechas.value || !rangoFechas.value.from || !rangoFechas.value.to) return ''
   return `${rangoFechas.value.from} a ${rangoFechas.value.to}`
@@ -148,9 +234,7 @@ const textoRangoFechas = computed(() => {
 
 const resumen = data.resumen
 
-
-const gastos = data.gastos_por_categoria
-const productos = data.productos_top
+const productos = ref([])
 
 const gananciasFiltradas = computed(() => {
   if (!rangoFechas.value || !rangoFechas.value.from || !rangoFechas.value.to) {
@@ -162,22 +246,11 @@ const gananciasFiltradas = computed(() => {
   return ganancias.value.filter(g => g.fecha >= desde && g.fecha <= hasta)
 })
 
-// const resumenFiltrado = computed(() => {
-//   const totalVentas = gananciasFiltradas.value.reduce((sum, g) => sum + g.ventas, 0)
-//   const totalGastos = gananciasFiltradas.value.reduce((sum, g) => sum + g.gastos, 0)
-//   return {
-//     total_ventas: totalVentas,
-//     total_gastos: totalGastos,
-//     ganancia_neta: totalVentas - totalGastos
-//   }
-// })
-
 const resumenFiltrado = ref({
   total_ventas: 0,
   total_gastos: 0,
   ganancia_neta: 0
 })
-
 
 const graficaGanancias = computed(() => ({
   series: [
@@ -193,34 +266,85 @@ const graficaGanancias = computed(() => ({
     },
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth' },
-    colors: ['#21BA45']
+    colors: ['#21BA45'],
+    tooltip: {
+      y: {
+        formatter: (val) => {
+          return '$' + val.toLocaleString('es-CO');
+        }
+      }
+    }
   }
 }))
 
-const graficaGastos = {
-  series: gastos.map(g => g.total),
+const graficaGastos = computed(() => ({
+  series: gastos.value.map(g => parseFloat(g.total) || 0),
   options: {
-    labels: gastos.map(g => g.categoria),
+    labels: gastos.value.map(g => g.categoria),
     legend: { position: 'bottom' },
+    tooltip: {
+      y: {
+        formatter: (val) => {
+          return '$' + val.toLocaleString('es-CO');
+        }
+      }
+    },
     colors: ['#F44336', '#FF9800', '#FFC107', '#4CAF50', '#2196F3', '#9C27B0', '#00BCD4', '#8BC34A', '#607D8B', '#795548']
   }
-}
+}))
 
-const graficaProductos = {
+const chartGananciaTipo = computed(() => ({
+  series: gananciaPorTipo.value.map(g => parseFloat(g.ganancia) || 0),
+  options: {
+    labels: gananciaPorTipo.value.map(g => g.tipo_pago),
+    legend: { position: 'bottom' },
+    colors: ['#F44336', '#FF9800', '#FFC107', '#4CAF50', '#2196F3', '#9C27B0', '#00BCD4', '#8BC34A', '#607D8B', '#795548'],
+    tooltip: {
+      y: {
+        formatter: (val) => {
+          return '$' + val.toLocaleString('es-CO');
+        }
+      }
+    }
+
+  }
+}))
+
+
+const graficaProductos = computed(() => ({
   series: [
     {
       name: 'Ganancia Total',
-      data: productos.map(p => p.ganancia_total)
+      data: productos.value.map(p => parseFloat(p.ganancia_total) || 0)
     }
   ],
   options: {
     chart: { id: 'productos-top', toolbar: { show: false } },
     xaxis: {
-      categories: productos.map(p => p.nombre)
+      categories: productos.value.map(p => p.nombre)
     },
-    colors: ['#3F51B5']
+    colors: ['#3F51B5'],
+    tooltip: {
+      y: {
+        formatter: (val) => {
+          return '$' + val.toLocaleString('es-CO');
+        }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val) {
+        return '$' + val.toLocaleString('es-CO')
+      },
+      style: {
+        fontWeight: 'bold',
+        colors: ['#fff']
+      }
+    }
   }
-}
+}))
+
+
 </script>
 
 <style scoped>
