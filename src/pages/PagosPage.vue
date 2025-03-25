@@ -16,49 +16,57 @@
               <q-input v-model="pago.fecha" label="Fecha del Pago" type="date" :disable="!modoEdicion" />
               <q-input v-model="pago.monto" label="Monto Pagado" type="number" :disable="!modoEdicion" />
 
-              <ClienteSelect
-                v-model="clienteSeleccionado"
-                :disable="!modoEdicion"
-                @update:modelValue="buscarVentasDelCliente"
-              />
-              <q-select
-                v-model="pago.venta.id"
-                :options="ventasCliente"
-                option-value="id"
-                :option-label="venta => `${venta.factura_id} | ${venta.fecha_venta} | ${formatearPesos(venta.total)}`"
-                emit-value
-                map-options
-                label="Seleccionar Venta"
-                :disable="!modoEdicion || ventasCliente.length === 0"
-                :loading="seleccionandoVenta"
-                hint="Ventas activas del cliente"
-              >
+              <!-- Si es nuevo, mostramos los selects -->
+              <template v-if="esNuevo">
+                <ClienteSelect
+                  v-model="pago.venta.cliente"
+                  :disable="!modoEdicion"
+                  option-label="nombre_completo"
+                  @update:modelValue="buscarVentasDelCliente"
+                />
 
-                <template #option="scope">
-                  <q-item v-bind="scope.itemProps">
-                    <q-item-section>
-                      <q-item-label class="text-bold">
-                        <span>{{ scope.opt.factura_id }}</span> |
-                        {{ scope.opt.fecha_venta }} | {{ formatearPesos(scope.opt.total) }}
-                      </q-item-label>
-                      <q-item-label caption>
-                        Tipo: {{ scope.opt.tipo_pago }} — Saldo: {{ formatearPesos(scope.opt.saldo_pendiente) }}
-                      </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
+                <q-select
+                  v-model="pago.venta.id"
+                  :options="ventasCliente"
+                  option-value="id"
+                  :option-label="venta => `${venta.factura_id} | ${venta.fecha_venta} | ${formatearPesos(venta.total)}`"
+                  emit-value
+                  map-options
+                  label="Seleccionar Venta"
+                  :disable="!modoEdicion || ventasCliente.length === 0"
+                  :loading="seleccionandoVenta"
+                  hint="Ventas activas del cliente"
+                >
+                  <template #option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label class="text-bold">
+                          <span>{{ scope.opt.factura_id }}</span> |
+                          {{ scope.opt.fecha_venta }} | {{ formatearPesos(scope.opt.total) }}
+                        </q-item-label>
+                        <q-item-label caption>
+                          Tipo: {{ scope.opt.tipo_pago }} — Saldo: {{ formatearPesos(scope.opt.saldo_pendiente) }}
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
 
-                <template #selected>
-                  <span>
-                    {{ pago.venta?.fecha_venta }} - {{ formatearPesos(pago.venta?.total) }}
-                  </span>
-                </template>
-              </q-select>
+                  <template #selected>
+                    <span v-if="pago.venta?.id">
+                      {{ pago.venta.fecha_venta }} - {{ formatearPesos(pago.venta.total) }}
+                    </span>
+                    <span v-else class="text-grey"></span>
+                  </template>
 
+                </q-select>
+              </template>
 
-
-              <q-input v-model="pago.venta.id" label="ID de la Venta" :disable="true" />
-              <q-input v-model="pago.venta.cliente.nombre_completo" label="Cliente" :disable="true" />
+              <!-- Si no es nuevo, mostramos los campos estáticos -->
+              <template v-else>
+                <q-input v-model="pago.venta.factura_id" label="Factura ID" :disable="true" />
+                <q-input v-model="pago.venta.fecha_venta" label="Fecha de la Venta" :disable="true" />
+                <q-input v-model="pago.venta.cliente.nombre_completo" label="Cliente" :disable="true" />
+              </template>
 
           </q-form>
           </q-card-section>
@@ -104,13 +112,52 @@ const pagos = ref([]);
 const registroSeleccionado = ref(false);
 const modoEdicion = ref(false);
 const errores = ref({});
-const clienteSeleccionado = ref(null);
+
 const seleccionandoVenta = ref(false);
 const ventasCliente = ref([]);
+const esNuevo = computed(() => modoEdicion.value && !registroSeleccionado.value);
 
+
+// Objeto reactivo principal del pago
+const pago = reactive({
+  id: null,
+  fecha: "",
+  monto: 0,
+  venta: {
+    id: null,
+    fecha_venta: "",
+    tipo_pago: "",
+    total: 0,
+    saldo: 0,
+    factura_id: null,
+    cliente: {
+      id: null,
+      nombre_completo: ""
+    }
+  }
+});
+watch(
+  () => ({
+    venta_id: pago.venta.id,
+    fecha: pago.fecha,
+    monto: pago.monto
+  }),
+  (val) => {
+    errores.value = validarCampos(val, reglasPago);
+  },
+  { immediate: true }
+);
+
+
+
+
+
+
+// Cargar ventas de un cliente
 const buscarVentasDelCliente = (cliente) => {
   if (!cliente?.id) return;
-  pago.venta.cliente = cliente; // asigna el cliente al pago
+
+  pago.venta.cliente = cliente;
 
   seleccionandoVenta.value = true;
   apiService.get(`/ventas/cliente/${cliente.id}`)
@@ -122,40 +169,23 @@ const buscarVentasDelCliente = (cliente) => {
     });
 };
 
-const pago = reactive({
-  id: null,
-  fecha: "", // Fecha del pago
-  monto: 0,  // Monto abonado
-  venta: {
-    id: null,
-    fecha_venta: "",
-    tipo_pago: "", // Contado o Crédito
-    total: 0,
-    saldo: 0,
-    cliente: {
-      id: null,
-      nombre_completo: ""
-    }
-  }
-});
+// Cuando se selecciona una venta, actualiza los datos (sin borrar cliente)
 watch(() => pago.venta.id, (ventaId) => {
   const venta = ventasCliente.value.find(v => v.id === ventaId);
   if (venta) {
-    Object.assign(pago.venta, {
-      id: venta.id,
-      fecha_venta: venta.fecha_venta,
-      tipo_pago: venta.tipo_pago,
-      total: venta.total,
-      saldo_pendiente: venta.saldo_pendiente,
-      factura_id: venta.factura_id
-    });
+    pago.venta.fecha_venta = venta.fecha_venta;
+    pago.venta.tipo_pago = venta.tipo_pago;
+    pago.venta.total = venta.total;
+    pago.venta.saldo = venta.saldo_pendiente;
+    pago.venta.factura_id = venta.factura_id;
   }
 });
-
 
 
 // Columnas de la tabla
 const columns = [
+  { name: "factura_id", label: "Factura ID", field: row => row.venta?.factura_id, align: "left" },
+  { name: "fecha_venta", label: "Fecha de la Venta", field: row => row.venta?.fecha_venta, align: "left" },
   { name: "nombre", label: "Cliente", field: row => row.venta?.cliente?.nombre_completo, align: "left" },
   { name: "tipo_pago", label: "Tipo de Pago", field: row => row.venta?.tipo_pago, align: "left" },
   { name: "total", label: "Total Venta", field: row => '$' + formatearPesos(row.venta?.total), align: "left" },
@@ -164,10 +194,11 @@ const columns = [
   { name: "fecha", label: "Fecha del Pago", field: "fecha", align: "left" }
 ];
 
-// Computed para habilitar el botón "Guardar"
+
 const puedeGuardar = computed(() => {
-  return modoEdicion.value && Object.keys(validarCampos(pago, reglasPago)).length === 0;
+  return modoEdicion.value && Object.keys(errores.value).length === 0;
 });
+
 
 // Carga inicial
 onMounted(() => {
@@ -178,29 +209,21 @@ const cargarPagos = () => {
   loading.value = true;
   apiService.get('/pagos')
     .then(response => {
-      pagos.value = response.data
-    })
-    .catch(() => {
-      // El error ya se notifica automáticamente por apiService
+      pagos.value = response.data;
     })
     .finally(() => {
-          loading.value = false;
+      loading.value = false;
     });
-}
+};
 
-// Función para seleccionar un registro desde la tabla
+// Seleccionar un pago desde la tabla
 const seleccionarRegistro = (evt, row) => {
   Object.assign(pago, row);
   registroSeleccionado.value = true;
   modoEdicion.value = false;
 };
 
-// Función para editar
-// const editarRegistro = () => {
-//   modoEdicion.value = true;
-// };
-
-// Función para iniciar un nuevo registro
+// Nuevo registro
 const nuevoRegistro = () => {
   Object.assign(pago, {
     id: null,
@@ -212,56 +235,49 @@ const nuevoRegistro = () => {
       tipo_pago: "",
       total: 0,
       saldo: 0,
-      cliente: {
-        id: null,
-        nombre_completo: ""
-      }
+      factura_id: null,
+      cliente: null
     }
   });
   registroSeleccionado.value = false;
   modoEdicion.value = true;
 };
 
-
-  // Función para eliminar
-  // const eliminarRegistro = () => {
-  //   apiService.delete('/proveedores', proveedor.id)
-  //     .then(() => {
-  //       proveedores.value = proveedores.value.filter(p => p.id !== proveedor.id)
-  //       nuevoRegistro() // Limpia el formulario
-  //     })
-  //     .catch(() => {
-  //       // El error ya lo muestra apiService
-  //     })
-  // };
-
 // Función para validar y guardar los cambios
-// const guardarRegistro = () => {
-//   errores.value = validarCampos(proveedor, reglasProveedor); // validarCampos adaptado
-//   if (Object.keys(errores.value).length > 0) return;
+const guardarRegistro = () => {
+  const datos = {
+    venta_id: pago.venta.id,
+    fecha: pago.fecha,
+    monto: pago.monto
+  };
 
-//   if (proveedor.id === null) {
-//       apiService.post('/proveedores', proveedor)
-//       .then(response => {
-//         proveedores.value.push(response.data) // agrega el cliente retornado
-//         modoEdicion.value = false
-//       })
-//       .catch(() => {
-//         // El error ya se maneja automáticamente con Notify en apiService
-//       })
-//   } else {
-//     apiService.put('/proveedores', proveedor)
-//       .then(response => {
-//         const index = proveedores.value.findIndex(p => p.id === proveedor.id)
-//         if (index !== -1) {
-//           proveedores.value[index] = response.data
-//         }
-//         modoEdicion.value = false
-//       })
-//       .catch(() => {
-//         // El error ya lo muestra apiService
-//       })
-//   }
-//   modoEdicion.value = false;
-// };
+  errores.value = validarCampos(datos, reglasPago);
+  if (Object.keys(errores.value).length > 0) return;
+
+  if (pago.id === null) {
+    apiService.post('/pagos', datos)
+      .then(response => {
+        cargarPagos(); // recarga toda la tabla con relaciones completas
+        modoEdicion.value = false;
+      })
+      .catch(() => {
+        // El error ya se maneja automáticamente por apiService
+      });
+  } else {
+    apiService.put(`/pagos/${pago.id}`, datos)
+      .then(response => {
+        const index = pagos.value.findIndex(p => p.id === pago.id);
+        if (index !== -1) {
+          pagos.value[index] = response.data;
+        }
+        modoEdicion.value = false;
+      })
+      .catch(() => {
+        // El error ya se maneja automáticamente por apiService
+      });
+  }
+
+  modoEdicion.value = false
+};
+
 </script>
