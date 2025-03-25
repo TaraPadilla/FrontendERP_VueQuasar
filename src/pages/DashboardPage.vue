@@ -80,10 +80,66 @@
 
 <script setup>
 import data from 'src/ganancias.json'
-import { computed, defineAsyncComponent, ref } from 'vue'
+import apiService from 'src/services/apiService'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
+
 const apexcharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
 const rangoFechas = ref(null)
+const fromDate = ref(null)
+const toDate = ref(null)
+const ganancias = ref([])
+
+const cargarKpis = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+
+    const response = await apiService.get('/kpi-dashboard', params)
+    console.log(response.data)
+    resumenFiltrado.value = response.data
+
+  } catch (error) {
+    // Ya está manejado por el interceptor de apiService
+  }
+}
+
+
+const cargarGanancias = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+
+    const response = await apiService.get('/ganancias-diarias', params)
+    ganancias.value = response.data
+  } catch (error) {
+    // Manejo ya está en el interceptor
+  }
+}
+
+onMounted(() => {
+  cargarKpis()
+  cargarGanancias()
+});
+watch([fromDate, toDate], () => {
+  console.log('Fechas cambiadas:', fromDate.value, toDate.value)
+  cargarKpis()
+  cargarGanancias()
+})
+watch(rangoFechas, (nuevo) => {
+  if (nuevo && nuevo.from && nuevo.to) {
+    fromDate.value = nuevo.from
+    toDate.value = nuevo.to
+  } else {
+    fromDate.value = null
+    toDate.value = null
+  }
+})
+
+
+
 
 const textoRangoFechas = computed(() => {
   if (!rangoFechas.value || !rangoFechas.value.from || !rangoFechas.value.to) return ''
@@ -91,29 +147,37 @@ const textoRangoFechas = computed(() => {
 })
 
 const resumen = data.resumen
-const ganancias = data.ganancias_diarias
+
+
 const gastos = data.gastos_por_categoria
 const productos = data.productos_top
 
 const gananciasFiltradas = computed(() => {
   if (!rangoFechas.value || !rangoFechas.value.from || !rangoFechas.value.to) {
-    return ganancias
+    return ganancias.value
   }
   const normalize = str => str.replaceAll('/', '-');
   const desde = normalize(rangoFechas.value.from)
   const hasta = normalize(rangoFechas.value.to)
-  return ganancias.filter(g => g.fecha >= desde && g.fecha <= hasta)
+  return ganancias.value.filter(g => g.fecha >= desde && g.fecha <= hasta)
 })
 
-const resumenFiltrado = computed(() => {
-  const totalVentas = gananciasFiltradas.value.reduce((sum, g) => sum + g.ventas, 0)
-  const totalGastos = gananciasFiltradas.value.reduce((sum, g) => sum + g.gastos, 0)
-  return {
-    total_ventas: totalVentas,
-    total_gastos: totalGastos,
-    ganancia_neta: totalVentas - totalGastos
-  }
+// const resumenFiltrado = computed(() => {
+//   const totalVentas = gananciasFiltradas.value.reduce((sum, g) => sum + g.ventas, 0)
+//   const totalGastos = gananciasFiltradas.value.reduce((sum, g) => sum + g.gastos, 0)
+//   return {
+//     total_ventas: totalVentas,
+//     total_gastos: totalGastos,
+//     ganancia_neta: totalVentas - totalGastos
+//   }
+// })
+
+const resumenFiltrado = ref({
+  total_ventas: 0,
+  total_gastos: 0,
+  ganancia_neta: 0
 })
+
 
 const graficaGanancias = computed(() => ({
   series: [
